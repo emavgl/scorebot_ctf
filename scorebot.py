@@ -20,7 +20,7 @@ class Game:
 			for team_name, team in teams.iteritems():
 				tmp_flag = service.getFlag(team.host, team_name)
 				if tmp_flag == service.flags[team.name]:
-					print 'punto difesa per ' + team_name + " serice_name " + service_name
+					print '+1 for ' + team_name + " - serice_name " + service_name
 					team.updateDefScore()
 					
 	def setFlags(self):
@@ -37,7 +37,7 @@ class Game:
 		dic_flags = self.services[service_name].flags
 		for user, user_flag in dic_flags.iteritems():
 			if flag == user_flag: #and user != teamx.name:
-				print 'punto attacco per ' + team_name
+				print '+2 for ' + team_name
 				teamx.updateAttScore()
 				self.services[service_name].flags[user] = ""
 				return "valid"
