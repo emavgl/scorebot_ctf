@@ -1,7 +1,4 @@
 import sys
-import os
-import subprocess
-import ast
 import time, threading
 import random, string
 
@@ -9,6 +6,13 @@ from flask import Flask
 from flask import request
 
 app = Flask(__name__)
+
+#start-import-services
+sys.path.insert(0, './services/')
+
+import textfilestore
+import tweetybird
+#end-import-services
 
 class Game:
 	def __init__(self, teams, services):
@@ -20,7 +24,7 @@ class Game:
 			for team_name, team in teams.iteritems():
 				tmp_flag = service.getFlag(team.host, team_name)
 				if tmp_flag == service.flags[team.name]:
-					print '+1 for ' + team_name + " - serice_name " + service_name
+					print '+1 for %s - %s' % (team_name, service_name)
 					team.updateDefScore()
 					
 	def setFlags(self):
@@ -57,11 +61,11 @@ class Team:
 		self.def_score += 1
 
 class Service:
-   def __init__(self, name, port):
+   def __init__(self, name, port, module):
       self.name = name
       self.port = port
-      self.path = "./services/" + name
-      self.flags = {} #flag una per team
+      self.module = module
+      self.flags = {}
       self.args = {}
 
    def getFlagID(self, team_name):
@@ -69,26 +73,15 @@ class Service:
 
    def setFlag(self, host, team_name):
    	  flag = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
-   	  query = "{0}/set_flag.py".format(self.path)
-   	  args = "{0} {1} {2}".format(host, self.port, flag)
-	  proc = subprocess.Popen(['python', query,  args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	  out, err = proc.communicate()
-	  out = out.split('\n')
-	  size = len(out)
-	  out = out[size-2]
-	  self.args[team_name] = ast.literal_eval(out)
+   	  self.args[team_name] = self.module.set_flag(host, self.port, flag)
    	  self.flags[team_name] = flag
  
    def getFlag(self, host, team_name):
-   	  query = "{0}/get_flag.py".format(self.path)
-   	  args = "{0} {1} {2} {3}".format(host, self.port, self.args[team_name]["flag_id"], self.args[team_name]["token"])
-	  proc = subprocess.Popen(['python', query,  args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-	  out, err = proc.communicate()
-	  out = out.split('\n')
-	  size = len(out)
-	  out = out[size-2]
-	  print 'flag ottenuta: ' + str(out)
-	  return str(out)
+   	  flag_id = self.args[team_name]["flag_id"]
+   	  token = self.args[team_name]["token"]
+   	  flag = self.module.get_flag(host, self.port, flag_id, token)
+	  print 'retrieved flag %s' % (flag)
+	  return flag
 
 def routine():
 	game.setFlags()
@@ -118,8 +111,8 @@ def getFlagID():
 	return str(flagid)
 
 if __name__ == '__main__':
-	teams = {'fried': Team('fried', "192.168.56.101") }
-	services = {'tweety_bird': Service('tweety_bird', '20118'), 'textfilestore': Service('textfilestore', '20093')}
+	teams = {'fried': Team('fried', "192.168.56.102") }
+	services = {'tweety_bird': Service('tweety_bird', '20118', tweetybird), 'textfilestore': Service('textfilestore', '20093', textfilestore)}
 	game = Game(teams, services)
 	routine()
 	app.run()
