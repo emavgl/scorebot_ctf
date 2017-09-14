@@ -1,8 +1,8 @@
-#scorebot_ctf
+# scorebot-ctf
 This is a simple sketch of a scorebot for Attack-Defense CTF in python.
 It has been tested using two services (textfilestore, tweety_bird) from iCTF 2015.
 
-##Configuration
+## Configuration
 ```python
 ...
 #import here your services
@@ -20,10 +20,10 @@ You have to initialize the dictionary *teams* which contains for each team an ob
 Every team has a name and an IP that the scorebot use to test the services.
 Then you have to initialize the dictionary *service* with objects of type *Service(name, port)*.
 
-###Services
+## Services
 Each service must have a python script inside the directory **./services** that contains the functions **set_flag(host, port, flag)** and **get_flag(host, port, flag_id, token)** used by the scorebot to set a new flag into the service and gets it back. The set_flag function returns to the main script a *flag_id* and a *token*. The get_flag function returns a flag given a flag_id and a token.
 
-##Flask server
+## Flask server
 There is also a simple HTTP server that lets the teams submit flags, get flagIDs and view the scores.
 
 ```python
